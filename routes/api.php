@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PersonalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +15,19 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+/* Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+}); */
+
+Route::controller(PersonalController::class)->prefix("personal")->group(function () {
+    Route::get('readall', 'readall');
+    
+    /* Route::post('create', 'create');
+    Route::get('read/{id?}', 'read');
+    Route::get('readcsv', 'readcsv');
+    Route::get('readmany/{id?}', 'readmany');
+    Route::put('update', 'update');
+    Route::delete('delete/{id?}', 'delete');
+    Route::post('refresh', 'refresh'); */
+
 });
