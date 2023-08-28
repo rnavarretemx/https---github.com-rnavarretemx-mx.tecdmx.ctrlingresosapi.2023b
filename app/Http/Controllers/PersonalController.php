@@ -18,7 +18,7 @@ class PersonalController extends Controller
     {
         return response()->json([
             'status' => 'success',
-            'message' => 'All records obteined successfully',
+            'message' => 'Se obtuvieron todos los registros con éxito.',
             'personal' => Personal::all(),
         ]);
     }
