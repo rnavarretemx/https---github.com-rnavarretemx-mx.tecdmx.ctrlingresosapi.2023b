@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('modelo', 30);
             $table->longText('no_serie');
             $table->foreignId('ingreso_id')->references('id')->on('ingresos')->onDelete('cascade');
-            $table->timestamps();
+            /* $table->timestamps(); */
         });
     }
 
