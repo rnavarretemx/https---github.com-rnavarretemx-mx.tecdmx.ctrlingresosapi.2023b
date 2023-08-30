@@ -21,7 +21,7 @@ return new class extends Migration
             $table->longText('cargo');
             $table->longText('area');
             $table->longText('imagen')->nullable();
-            /* $table->timestamps(); */
+            $table->timestamps();
         });
     }
 

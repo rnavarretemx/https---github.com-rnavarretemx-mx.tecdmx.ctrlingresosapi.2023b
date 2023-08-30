@@ -16,6 +16,9 @@ use App\Http\Requests\StoreIngresos;
 use App\Http\Requests\StoreEquipos;
 use App\Http\Requests\StoreAutos;
 
+/* use App\Http\Controllers\phpqrcode\qrlib; */
+include('../Controllers/phpqrcode/qrlib.php');
+
 class IngresosController extends Controller
 {
 
@@ -29,13 +32,14 @@ class IngresosController extends Controller
                 'asunto' =>  $request->asunto,
                 'contacto' => $request->contacto,
             ]);
+            $u_id =(uniqid() . $request->personal_id . $visitante->id);
 
             $ingreso = Ingreso::create([
                 'fecha' => $request->fecha,
                 'hora_agendada' => $request->hora_agendada,
                 'edo_cita' => true,
-                'codigo' => (uniqid() . $request->personal_id . $visitante->id),
-                'codigo_qr' => 'qr.jpg',
+                'codigo' => $u_id,
+                'codigo_qr' => QRcode::svg($u_id),
                 'visitante_id' => $visitante->id,
                 'personal_id' => $request->personal_id,
             ]);
@@ -49,7 +53,7 @@ class IngresosController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Something went wrong!',
+                'message' => 'Something went wrong!' . $e,
             ]);
         }
     }

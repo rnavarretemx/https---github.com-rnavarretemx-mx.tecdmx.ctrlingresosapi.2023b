@@ -17,7 +17,7 @@ return new class extends Migration
             $table->longText('procedencia');
             $table->longText('asunto');
             $table->char('contacto',50);
-            /* $table->timestamps(); */
+            $table->timestamps();
         });
     }
 

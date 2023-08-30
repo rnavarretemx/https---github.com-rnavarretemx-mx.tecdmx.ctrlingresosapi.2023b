@@ -22,7 +22,7 @@ return new class extends Migration
             $table->longText('codigo_qr');
             $table->foreignId('personal_id')->references('id')->on('personal')->onDelete('cascade');
             $table->foreignId('visitante_id')->references('id')->on('visitantes')->onDelete('cascade');
-            /* $table->timestamps(); */
+            $table->timestamps();
         });
     }
 
