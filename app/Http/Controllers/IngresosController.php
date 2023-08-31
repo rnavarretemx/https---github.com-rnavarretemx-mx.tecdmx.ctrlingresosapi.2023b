@@ -16,13 +16,17 @@ use App\Http\Requests\StoreIngresos;
 use App\Http\Requests\StoreEquipos;
 use App\Http\Requests\StoreAutos;
 
-/* use App\Http\Controllers\phpqrcode\qrlib; */
-include('../Controllers/phpqrcode/qrlib.php');
+header("Content-type: image/png");
 
+/* require_once __DIR__ .  '/phpqrcode/qrlib.php' ;
+require_once __DIR__ .  '/phpqrcode/qrconfig.php' ;
+require_once __DIR__ .  '/phpqrcode/config.php' ; */
+include '../resources/phpqrcode/qrlib.php';
+use QRcode;
 class IngresosController extends Controller
 {
+    
 
-    //Método para el registro de una visita.
     public function store(StoreIngresos $request)
     {
         try {
@@ -32,14 +36,17 @@ class IngresosController extends Controller
                 'asunto' =>  $request->asunto,
                 'contacto' => $request->contacto,
             ]);
+
             $u_id =(uniqid() . $request->personal_id . $visitante->id);
+            /* QRcode::svg($u_id); */
+            $algo = $this->generateQR($u_id);
 
             $ingreso = Ingreso::create([
                 'fecha' => $request->fecha,
                 'hora_agendada' => $request->hora_agendada,
                 'edo_cita' => true,
                 'codigo' => $u_id,
-                'codigo_qr' => QRcode::svg($u_id),
+                'codigo_qr' => $algo,
                 'visitante_id' => $visitante->id,
                 'personal_id' => $request->personal_id,
             ]);
@@ -56,6 +63,34 @@ class IngresosController extends Controller
                 'message' => 'Something went wrong!' . $e,
             ]);
         }
+    }
+
+    public function generateQR($u_id) { 
+        
+        $_file="";
+
+        if(class_exists('QRcode'))
+        {
+            
+            $tempDir = "../resources/images/";
+            $codeContents = $u_id;
+            $fileName = $u_id.'.png';
+            $pngAbsoluteFilePath = $tempDir.$fileName;
+            $urlRelativeFilePath = "images/".$fileName;
+            
+            if (!file_exists($pngAbsoluteFilePath)) {
+                QRcode::png($codeContents, $pngAbsoluteFilePath,10,10);
+            } 
+    
+        $_file = $fileName;
+    
+    }else{
+        
+        $_file = 'not_file.png';
+    }
+    
+    return $_file;
+    
     }
 
     public function store_equipo(StoreEquipos $request)
@@ -221,3 +256,4 @@ class IngresosController extends Controller
         return $ingreso_id;
     }
 }
+
