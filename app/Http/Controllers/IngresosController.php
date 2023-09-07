@@ -22,10 +22,12 @@ header("Content-type: image/png");
 require_once __DIR__ .  '/phpqrcode/qrconfig.php' ;
 require_once __DIR__ .  '/phpqrcode/config.php' ; */
 include '../resources/phpqrcode/qrlib.php';
+
 use QRcode;
+
 class IngresosController extends Controller
 {
-    
+
 
     public function store(StoreIngresos $request)
     {
@@ -37,7 +39,7 @@ class IngresosController extends Controller
                 'contacto' => $request->contacto,
             ]);
 
-            $u_id =(uniqid() . $request->personal_id . $visitante->id);
+            $u_id = (uniqid() . $request->personal_id . $visitante->id);
             /* QRcode::svg($u_id); */
             $algo = $this->generateQR($u_id);
 
@@ -65,32 +67,30 @@ class IngresosController extends Controller
         }
     }
 
-    public function generateQR($u_id) { 
-        
-        $_file="";
+    public function generateQR($u_id)
+    {
 
-        if(class_exists('QRcode'))
-        {
-            
+        $_file = "";
+
+        if (class_exists('QRcode')) {
+
             $tempDir = "../resources/images/";
             $codeContents = $u_id;
-            $fileName = $u_id.'.png';
-            $pngAbsoluteFilePath = $tempDir.$fileName;
-            $urlRelativeFilePath = "images/".$fileName;
-            
+            $fileName = $u_id . '.png';
+            $pngAbsoluteFilePath = $tempDir . $fileName;
+            $urlRelativeFilePath = "images/" . $fileName;
+
             if (!file_exists($pngAbsoluteFilePath)) {
-                QRcode::png($codeContents, $pngAbsoluteFilePath,10,10);
-            } 
-    
-        $_file = $fileName;
-    
-    }else{
-        
-        $_file = 'not_file.png';
-    }
-    
-    return $_file;
-    
+                QRcode::png($codeContents, $pngAbsoluteFilePath, 10, 10);
+            }
+
+            $_file = $fileName;
+        } else {
+
+            $_file = 'not_file.png';
+        }
+
+        return $_file;
     }
 
     public function store_equipo(StoreEquipos $request)
@@ -134,19 +134,30 @@ class IngresosController extends Controller
 
             if ($ingreso_id != null) {
 
-                $auto = Automovil::create([
-                    'marca' => $request->marca,
-                    'color' => $request->color,
-                    'placas' =>  $request->placas,
-                    'ingreso_id' => $ingreso_id->id,
-                ]);
+                $bool_auto = $this->buscaExistenciaAuto($ingreso_id->id);
 
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Registro Exitoso',
-                    'datos_auto' => $auto,
-                    'datos_visitante' => Visitante::find($ingreso_id->visitante_id),
-                ], 201);
+                if ($bool_auto != true ) {
+                    $auto = Automovil::create([
+                        'marca' => $request->marca,
+                        'color' => $request->color,
+                        'placas' =>  $request->placas,
+                        'ingreso_id' => $ingreso_id->id,
+                    ]);
+
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Registro Exitoso',
+                        'datos_auto' => $auto,
+                        'datos_visitante' => Visitante::find($ingreso_id->visitante_id),
+                    ], 201);
+                } else {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Ya existe registro de vehiculos para esta visita.',
+                    ]);
+                }
+                /* 'autooo' => $auto_id , */
+
             } else {
                 return response()->json([
                     'status' => 'error',
@@ -255,5 +266,12 @@ class IngresosController extends Controller
             ->first();
         return $ingreso_id;
     }
-}
 
+    public function buscaExistenciaAuto($ingreso_id)
+    {
+        $auto_id = DB::table('autos')
+            ->where('ingreso_id', $ingreso_id)
+            ->exists();
+        return $auto_id;
+    }
+}
