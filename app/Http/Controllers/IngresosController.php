@@ -136,7 +136,7 @@ class IngresosController extends Controller
 
                 $bool_auto = $this->buscaExistenciaAuto($ingreso_id->id);
 
-                if ($bool_auto != true ) {
+                if ($bool_auto != true) {
                     $auto = Automovil::create([
                         'marca' => $request->marca,
                         'color' => $request->color,
@@ -157,7 +157,6 @@ class IngresosController extends Controller
                     ]);
                 }
                 /* 'autooo' => $auto_id , */
-
             } else {
                 return response()->json([
                     'status' => 'error',
@@ -204,7 +203,6 @@ class IngresosController extends Controller
             ];
             $datos_ingreso = json_encode($arr_datos_ingreso);
 
-
             //Asigna la hora capturada por el servidor para el ingreso.
             date_default_timezone_set('America/Mexico_City');
             $ingreso->hora_entrada = date("h:i:s");
@@ -250,13 +248,59 @@ class IngresosController extends Controller
     //Leer todas las citas 
     public function readall()
     {
+        $ingreso = Ingreso::all();
+        $size_ingreso = sizeof($ingreso);
+        $datos_ingresos = array();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'All records obteined successfully',
-            'tamano' => sizeof(Ingreso::all()),
-            'datos_ingresos' => Ingreso::all(),
-        ]);
+        if ($size_ingreso > 0) {
+
+            for ($i = 0; $i < $size_ingreso; $i++) {
+                $personal = Personal::find($ingreso[$i]->personal_id);
+                $visitante =  Visitante::find($ingreso[$i]->visitante_id);
+
+                $arr_datos_personal = [
+                    'id' => $personal->id,
+                    'nombre' => ($personal->nombre . " " . $personal->ap_paterno . " " . $personal->ap_materno),
+                    'area' => $personal->area,
+                    'extension_telefonica' => $personal->extension
+                ];
+                $datos_personal = json_encode($arr_datos_personal);
+
+                $arr_datos_visitante = [
+                    'id' => $visitante->id,
+                    'nombre' => $visitante->nombre,
+                    'procedencia' => $visitante->procedencia,
+                    'asunto' => $visitante->asunto,
+                    'contacto' => $visitante->contacto
+                ];
+                $datos_visitante = json_encode($arr_datos_visitante);
+
+                $arr_datos_ingreso = [
+                    'id' => $ingreso[$i]->id,
+                    'fecha_cita' => $ingreso[$i]->fecha,
+                    'hora_agendada' => $ingreso[$i]->hora_agendada,
+                    'hora_salida' => $ingreso[$i]->hora_salida,
+                    'edo_cita' => $ingreso[$i]->edo_cita,
+                    'codigo' => $ingreso[$i]->codigo,
+                    'codigo_qr' => $ingreso[$i]->codigo,
+                    'personal' => json_decode($datos_personal),
+                    'visitante' => json_decode($datos_visitante),
+                ];
+                array_push($datos_ingresos,$arr_datos_ingreso);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Registros extraídos exitosamente.',
+                'tamano' => $size_ingreso,
+                'datos_ingresos' => $datos_ingresos
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong!',
+            ]);
+        }
     }
 
     public function buscaIdCodIngreso($cod_ingreso)
