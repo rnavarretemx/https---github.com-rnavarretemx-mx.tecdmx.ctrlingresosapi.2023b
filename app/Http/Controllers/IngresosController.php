@@ -18,9 +18,6 @@ use App\Http\Requests\StoreAutos;
 
 header("Content-type: image/png");
 
-/* require_once __DIR__ .  '/phpqrcode/qrlib.php' ;
-require_once __DIR__ .  '/phpqrcode/qrconfig.php' ;
-require_once __DIR__ .  '/phpqrcode/config.php' ; */
 include '../resources/phpqrcode/qrlib.php';
 
 use QRcode;
@@ -177,64 +174,71 @@ class IngresosController extends Controller
 
             $ingreso_id = $this->buscaIdCodIngreso($cod_ingreso);
 
-            $ingreso = Ingreso::find($ingreso_id->id);
-            $visitante =  Visitante::find($ingreso->visitante_id);
-            $personal = Personal::find($ingreso->personal_id);
+            if ($ingreso_id != null) {
+                $ingreso = Ingreso::find($ingreso_id->id);
+                $visitante =  Visitante::find($ingreso->visitante_id);
+                $personal = Personal::find($ingreso->personal_id);
 
-            //Contruye el JSON con los datos del personal que se va a visitar.
-            $arr_datos_personal = [
-                'id' => $personal->id,
-                'nombre' => ($personal->nombre . " " . $personal->ap_paterno . " " . $personal->ap_materno),
-                'area' => $personal->area,
-                'extension_telefonica' => $personal->extension
-            ];
-            $datos_personal = json_encode($arr_datos_personal);
+                //Contruye el JSON con los datos del personal que se va a visitar.
+                $arr_datos_personal = [
+                    'id' => $personal->id,
+                    'nombre' => ($personal->nombre . " " . $personal->ap_paterno . " " . $personal->ap_materno),
+                    'area' => $personal->area,
+                    'extension_telefonica' => $personal->extension
+                ];
+                $datos_personal = json_encode($arr_datos_personal);
 
-            //Construye el JSON con los datos del ingreso 
-            $arr_datos_ingreso = [
-                'id' => $ingreso->id,
-                'fecha_cita' => $ingreso->fecha,
-                'hora_agendada' => $ingreso->hora_agendada,
-                'hora_entrada' => $ingreso->hora_entrada,
-                'hora_salida' => $ingreso->hora_salida,
-                'edo_cita' => ($ingreso->edo_cita == 1 ? true : false),
-                'codigo' => $ingreso->codigo,
-                'cod_qr' => $ingreso->codigo_qr
-            ];
-            $datos_ingreso = json_encode($arr_datos_ingreso);
+                //Construye el JSON con los datos del ingreso 
+                $arr_datos_ingreso = [
+                    'id' => $ingreso->id,
+                    'fecha_cita' => $ingreso->fecha,
+                    'hora_agendada' => $ingreso->hora_agendada,
+                    'hora_entrada' => $ingreso->hora_entrada,
+                    'hora_salida' => $ingreso->hora_salida,
+                    'edo_cita' => ($ingreso->edo_cita == 1 ? true : false),
+                    'codigo' => $ingreso->codigo,
+                    'cod_qr' => $ingreso->codigo_qr
+                ];
+                $datos_ingreso = json_encode($arr_datos_ingreso);
 
-            //Asigna la hora capturada por el servidor para el ingreso.
-            date_default_timezone_set('America/Mexico_City');
-            $ingreso->hora_entrada = date("h:i:s");
-
-
-            //Obtiene los datos del equipo registrado para la visita.
-            $datos_equipo = DB::table('equipos')
-                ->where('ingreso_id', $ingreso->id)
-                ->get();
-
-            //Obtiene los datos del auto registrado para la visita.
-            $datos_auto = DB::table('autos')
-                ->where('ingreso_id', $ingreso->id)
-                ->get();
+                //Asigna la hora capturada por el servidor para el ingreso.
+                date_default_timezone_set('America/Mexico_City');
+                $ingreso->hora_entrada = date("h:i:s");
 
 
-            if ($ingreso != null) {
+                //Obtiene los datos del equipo registrado para la visita.
+                $datos_equipo = DB::table('equipos')
+                    ->where('ingreso_id', $ingreso->id)
+                    ->get();
 
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Record obteined successfully',
-                    'datos_ingreso' => json_decode($datos_ingreso),
-                    'datos_visitante' => $visitante,
-                    'datos_personal' => json_decode($datos_personal),
-                    'datos_equipo' => $datos_equipo,
-                    'datos_auto' => $datos_auto,
+                //Obtiene los datos del auto registrado para la visita.
+                $datos_auto = DB::table('autos')
+                    ->where('ingreso_id', $ingreso->id)
+                    ->get();
 
-                ]);
+
+                if ($ingreso != null) {
+
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Record obteined successfully',
+                        'datos_ingreso' => json_decode($datos_ingreso),
+                        'datos_visitante' => $visitante,
+                        'datos_personal' => json_decode($datos_personal),
+                        'datos_equipo' => $datos_equipo,
+                        'datos_auto' => $datos_auto,
+
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'No existe el registro.',
+                    ], 401);
+                }
             } else {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Record not found',
+                    'message' => 'No hay registro con el código ingresado.',
                 ], 401);
             }
         } else {
@@ -286,7 +290,7 @@ class IngresosController extends Controller
                     'personal' => json_decode($datos_personal),
                     'visitante' => json_decode($datos_visitante),
                 ];
-                array_push($datos_ingresos,$arr_datos_ingreso);
+                array_push($datos_ingresos, $arr_datos_ingreso);
             }
 
             return response()->json([
@@ -298,7 +302,7 @@ class IngresosController extends Controller
         } else {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Something went wrong!',
+                'message' => 'No existen registros.',
             ]);
         }
     }
