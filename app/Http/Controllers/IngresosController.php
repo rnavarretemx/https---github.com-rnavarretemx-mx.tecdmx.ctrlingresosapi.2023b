@@ -18,14 +18,13 @@ use App\Http\Requests\StoreAutos;
 
 header("Content-type: image/png");
 
-/* require_once __DIR__ .  '/phpqrcode/qrlib.php' ;
-require_once __DIR__ .  '/phpqrcode/qrconfig.php' ;
-require_once __DIR__ .  '/phpqrcode/config.php' ; */
 include '../resources/phpqrcode/qrlib.php';
+
 use QRcode;
+
 class IngresosController extends Controller
 {
-    
+
 
     public function store(StoreIngresos $request)
     {
@@ -37,7 +36,7 @@ class IngresosController extends Controller
                 'contacto' => $request->contacto,
             ]);
 
-            $u_id =(uniqid() . $request->personal_id . $visitante->id);
+            $u_id = (uniqid() . $request->personal_id . $visitante->id);
             $algo = $this->generateQR($u_id);
 
             $ingreso = Ingreso::create([
@@ -64,32 +63,30 @@ class IngresosController extends Controller
         }
     }
 
-    public function generateQR($u_id) { 
-        
-        $_file="";
+    public function generateQR($u_id)
+    {
 
-        if(class_exists('QRcode'))
-        {
-            
+        $_file = "";
+
+        if (class_exists('QRcode')) {
+
             $tempDir = "../resources/images/";
             $codeContents = $u_id;
-            $fileName = $u_id.'.png';
-            $pngAbsoluteFilePath = $tempDir.$fileName;
-            $urlRelativeFilePath = "images/".$fileName;
-            
+            $fileName = $u_id . '.png';
+            $pngAbsoluteFilePath = $tempDir . $fileName;
+            $urlRelativeFilePath = "images/" . $fileName;
+
             if (!file_exists($pngAbsoluteFilePath)) {
-                QRcode::png($codeContents, $pngAbsoluteFilePath,10,10);
-            } 
-    
-        $_file = $fileName;
-    
-    }else{
-        
-        $_file = 'not_file.png';
-    }
-    
-    return $_file;
-    
+                QRcode::png($codeContents, $pngAbsoluteFilePath, 10, 10);
+            }
+
+            $_file = $fileName;
+        } else {
+
+            $_file = 'not_file.png';
+        }
+
+        return $_file;
     }
 
     public function store_equipo(StoreEquipos $request)
@@ -133,19 +130,29 @@ class IngresosController extends Controller
 
             if ($ingreso_id != null) {
 
-                $auto = Automovil::create([
-                    'marca' => $request->marca,
-                    'color' => $request->color,
-                    'placas' =>  $request->placas,
-                    'ingreso_id' => $ingreso_id->id,
-                ]);
+                $bool_auto = $this->buscaExistenciaAuto($ingreso_id->id);
 
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Registro Exitoso',
-                    'datos_auto' => $auto,
-                    'datos_visitante' => Visitante::find($ingreso_id->visitante_id),
-                ], 201);
+                if ($bool_auto != true) {
+                    $auto = Automovil::create([
+                        'marca' => $request->marca,
+                        'color' => $request->color,
+                        'placas' =>  $request->placas,
+                        'ingreso_id' => $ingreso_id->id,
+                    ]);
+
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Registro Exitoso',
+                        'datos_auto' => $auto,
+                        'datos_visitante' => Visitante::find($ingreso_id->visitante_id),
+                    ], 201);
+                } else {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Ya existe registro de vehiculos para esta visita.',
+                    ]);
+                }
+                /* 'autooo' => $auto_id , */
             } else {
                 return response()->json([
                     'status' => 'error',
@@ -166,65 +173,71 @@ class IngresosController extends Controller
 
             $ingreso_id = $this->buscaIdCodIngreso($cod_ingreso);
 
-            $ingreso = Ingreso::find($ingreso_id->id);
-            $visitante =  Visitante::find($ingreso->visitante_id);
-            $personal = Personal::find($ingreso->personal_id);
+            if ($ingreso_id != null) {
+                $ingreso = Ingreso::find($ingreso_id->id);
+                $visitante =  Visitante::find($ingreso->visitante_id);
+                $personal = Personal::find($ingreso->personal_id);
 
-            //Contruye el JSON con los datos del personal que se va a visitar.
-            $arr_datos_personal = [
-                'id' => $personal->id,
-                'nombre' => ($personal->nombre . " " . $personal->ap_paterno . " " . $personal->ap_materno),
-                'area' => $personal->area,
-                'extension_telefonica' => $personal->extension
-            ];
-            $datos_personal = json_encode($arr_datos_personal);
+                //Contruye el JSON con los datos del personal que se va a visitar.
+                $arr_datos_personal = [
+                    'id' => $personal->id,
+                    'nombre' => ($personal->nombre . " " . $personal->ap_paterno . " " . $personal->ap_materno),
+                    'area' => $personal->area,
+                    'extension_telefonica' => $personal->extension
+                ];
+                $datos_personal = json_encode($arr_datos_personal);
 
-            //Construye el JSON con los datos del ingreso 
-            $arr_datos_ingreso = [
-                'id' => $ingreso->id,
-                'fecha_cita' => $ingreso->fecha,
-                'hora_agendada' => $ingreso->hora_agendada,
-                'hora_entrada' => $ingreso->hora_entrada,
-                'hora_salida' => $ingreso->hora_salida,
-                'edo_cita' => ($ingreso->edo_cita == 1 ? true : false),
-                'codigo' => $ingreso->codigo,
-                'cod_qr' => $ingreso->codigo_qr
-            ];
-            $datos_ingreso = json_encode($arr_datos_ingreso);
+                //Construye el JSON con los datos del ingreso 
+                $arr_datos_ingreso = [
+                    'id' => $ingreso->id,
+                    'fecha_cita' => $ingreso->fecha,
+                    'hora_agendada' => $ingreso->hora_agendada,
+                    'hora_entrada' => $ingreso->hora_entrada,
+                    'hora_salida' => $ingreso->hora_salida,
+                    'edo_cita' => ($ingreso->edo_cita == 1 ? true : false),
+                    'codigo' => $ingreso->codigo,
+                    'cod_qr' => $ingreso->codigo_qr
+                ];
+                $datos_ingreso = json_encode($arr_datos_ingreso);
 
-
-            //Asigna la hora capturada por el servidor para el ingreso.
-            date_default_timezone_set('America/Mexico_City');
-            $ingreso->hora_entrada = date("h:i:s");
-
-
-            //Obtiene los datos del equipo registrado para la visita.
-            $datos_equipo = DB::table('equipos')
-                ->where('ingreso_id', $ingreso->id)
-                ->get();
-
-            //Obtiene los datos del auto registrado para la visita.
-            $datos_auto = DB::table('autos')
-                ->where('ingreso_id', $ingreso->id)
-                ->get();
+                //Asigna la hora capturada por el servidor para el ingreso.
+                date_default_timezone_set('America/Mexico_City');
+                $ingreso->hora_entrada = date("h:i:s");
 
 
-            if ($ingreso != null) {
+                //Obtiene los datos del equipo registrado para la visita.
+                $datos_equipo = DB::table('equipos')
+                    ->where('ingreso_id', $ingreso->id)
+                    ->get();
 
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Record obteined successfully',
-                    'datos_ingreso' => json_decode($datos_ingreso),
-                    'datos_visitante' => $visitante,
-                    'datos_personal' => json_decode($datos_personal),
-                    'datos_equipo' => $datos_equipo,
-                    'datos_auto' => $datos_auto,
+                //Obtiene los datos del auto registrado para la visita.
+                $datos_auto = DB::table('autos')
+                    ->where('ingreso_id', $ingreso->id)
+                    ->get();
 
-                ]);
+
+                if ($ingreso != null) {
+
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Record obteined successfully',
+                        'datos_ingreso' => json_decode($datos_ingreso),
+                        'datos_visitante' => $visitante,
+                        'datos_personal' => json_decode($datos_personal),
+                        'datos_equipo' => $datos_equipo,
+                        'datos_auto' => $datos_auto,
+
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'No existe el registro.',
+                    ], 401);
+                }
             } else {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Record not found',
+                    'message' => 'No hay registro con el código ingresado.',
                 ], 401);
             }
         } else {
@@ -238,13 +251,59 @@ class IngresosController extends Controller
     //Leer todas las citas 
     public function readall()
     {
+        $ingreso = Ingreso::all();
+        $size_ingreso = sizeof($ingreso);
+        $datos_ingresos = array();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'All records obteined successfully',
-            'tamano' => sizeof(Ingreso::all()),
-            'datos_ingresos' => Ingreso::all(),
-        ]);
+        if ($size_ingreso > 0) {
+
+            for ($i = 0; $i < $size_ingreso; $i++) {
+                $personal = Personal::find($ingreso[$i]->personal_id);
+                $visitante =  Visitante::find($ingreso[$i]->visitante_id);
+
+                $arr_datos_personal = [
+                    'id' => $personal->id,
+                    'nombre' => ($personal->nombre . " " . $personal->ap_paterno . " " . $personal->ap_materno),
+                    'area' => $personal->area,
+                    'extension_telefonica' => $personal->extension
+                ];
+                $datos_personal = json_encode($arr_datos_personal);
+
+                $arr_datos_visitante = [
+                    'id' => $visitante->id,
+                    'nombre' => $visitante->nombre,
+                    'procedencia' => $visitante->procedencia,
+                    'asunto' => $visitante->asunto,
+                    'contacto' => $visitante->contacto
+                ];
+                $datos_visitante = json_encode($arr_datos_visitante);
+
+                $arr_datos_ingreso = [
+                    'id' => $ingreso[$i]->id,
+                    'fecha_cita' => $ingreso[$i]->fecha,
+                    'hora_agendada' => $ingreso[$i]->hora_agendada,
+                    'hora_salida' => $ingreso[$i]->hora_salida,
+                    'edo_cita' => $ingreso[$i]->edo_cita,
+                    'codigo' => $ingreso[$i]->codigo,
+                    'codigo_qr' => $ingreso[$i]->codigo,
+                    'personal' => json_decode($datos_personal),
+                    'visitante' => json_decode($datos_visitante),
+                ];
+                array_push($datos_ingresos, $arr_datos_ingreso);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Registros extraídos exitosamente.',
+                'tamano' => $size_ingreso,
+                'datos_ingresos' => $datos_ingresos
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No existen registros.',
+            ]);
+        }
     }
 
     public function buscaIdCodIngreso($cod_ingreso)
@@ -254,5 +313,12 @@ class IngresosController extends Controller
             ->first();
         return $ingreso_id;
     }
-}
 
+    public function buscaExistenciaAuto($ingreso_id)
+    {
+        $auto_id = DB::table('autos')
+            ->where('ingreso_id', $ingreso_id)
+            ->exists();
+        return $auto_id;
+    }
+}
