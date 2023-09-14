@@ -12,6 +12,7 @@ class Equipo extends Model
         'marca',
         'modelo',
         'no_serie',
+        'descripcion',
         'ingreso_id',
     ];
 }

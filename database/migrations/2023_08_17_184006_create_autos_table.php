@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('marca', 30);
             $table->string('color', 30);
             $table->longText('placas');
+            $table->longText('descripcion');
             $table->foreignId('ingreso_id')->references('id')->on('ingresos')->onDelete('cascade');
             $table->timestamps();
         });

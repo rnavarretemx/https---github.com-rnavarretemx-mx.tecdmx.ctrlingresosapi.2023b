@@ -29,6 +29,7 @@ class StoreEquipos extends FormRequest
                 'marca' => 'required|string|max:30',
                 'modelo' => 'required|string|max:30',
                 'no_serie' => 'required|string',
+                'descripcion' => 'string',
                 'cod_ingreso' => 'required',
             ]
         };

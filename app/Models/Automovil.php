@@ -14,6 +14,7 @@ class Automovil extends Model
         'marca',
         'color',
         'placas',
+        'descripcion',
         'ingreso_id',
     ];
 }

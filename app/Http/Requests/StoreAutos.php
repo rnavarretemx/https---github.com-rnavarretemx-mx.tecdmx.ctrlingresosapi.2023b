@@ -29,6 +29,7 @@ class StoreAutos extends FormRequest
                 'marca' => 'required|string|max:30',
                 'color' => 'required|string|max:30',
                 'placas' => 'required|string',
+                'descripcion' => 'string',
                 'cod_ingreso' => 'required',
             ]
         };

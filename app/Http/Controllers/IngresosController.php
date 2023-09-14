@@ -11,7 +11,6 @@ use App\Models\Personal;
 use App\Models\Automovil;
 
 use Illuminate\Support\Facades\DB;
-
 use App\Http\Requests\StoreIngresos;
 use App\Http\Requests\StoreEquipos;
 use App\Http\Requests\StoreAutos;
@@ -101,6 +100,7 @@ class IngresosController extends Controller
                     'marca' => $request->marca,
                     'modelo' => $request->modelo,
                     'no_serie' =>  $request->no_serie,
+                    'descripcion' =>  $request->descripcion,
                     'ingreso_id' => $ingreso_id->id,
                 ]);
 
@@ -138,6 +138,7 @@ class IngresosController extends Controller
                         'marca' => $request->marca,
                         'color' => $request->color,
                         'placas' =>  $request->placas,
+                        'descripcion' =>  $request->descripcion,
                         'ingreso_id' => $ingreso_id->id,
                     ]);
 
