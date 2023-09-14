@@ -36,7 +36,6 @@ class IngresosController extends Controller
             ]);
 
             $u_id = (uniqid() . $request->personal_id . $visitante->id);
-            /* QRcode::svg($u_id); */
             $algo = $this->generateQR($u_id);
 
             $ingreso = Ingreso::create([
